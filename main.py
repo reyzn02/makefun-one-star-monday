@@ -12,7 +12,7 @@ import sys
 
 LINE = (
     "One star. Monday served cold coffee, a 9 AM meeting, and a Wi-Fi "
-    "outage as the main course. Would not book again."
+    "outage as the main course. Left hungry, still billed."
 )
 
 
