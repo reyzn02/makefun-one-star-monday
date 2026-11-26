@@ -1,33 +1,53 @@
 #!/usr/bin/env python3
-"""One Star for Monday.
+"""Emit the sharpened one-star review of Monday (batch 5, v3).
 
-Writes a one-star review of Monday as if it were a restaurant, at
-most 25 words and 1-180 characters, to $MAKEFUN_OUTPUT_DIR/entry.txt
-(default /output). Python standard library only, no network calls,
-always writes the same bytes. The gate is validated before writing.
+The program prints nothing and takes no input: it just drops a single
+review line into entry.txt under the directory named by
+MAKEFUN_OUTPUT_DIR, falling back to /output. The line is a diner's
+complaint about Monday treated as a restaurant — a waiter, a dish that
+went wrong, and a bill that showed up too soon.
+
+Only the standard library is used, nothing is fetched from the network,
+and the bytes written are identical on every run. Before writing, the
+line is measured against the competition gate: one line, 1-180
+characters, no more than 25 words, and not blank.
 """
 
+from pathlib import Path
 import os
 import sys
 
-LINE = (
-    "One star. Monday served cold coffee, a 9 AM meeting, and a Wi-Fi "
-    "outage as the main course. Left hungry, still billed."
+REVIEW = (
+    "One star. Monday's waiter brought cold coffee, "
+    "a meeting I never ordered, and the check before "
+    "the food arrived."
 )
 
 
-def main():
-    if not 1 <= len(LINE) <= 180:
-        sys.exit(f"gate failed: line is {len(LINE)} chars, need 1-180")
-    if len(LINE.split()) > 25:
-        sys.exit(f"gate failed: line is {len(LINE.split())} words, need <= 25")
-    if not LINE.strip() or "\n" in LINE:
-        sys.exit("gate failed: line must be a single non-blank line")
-    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, "entry.txt"), "w", encoding="utf-8") as f:
-        f.write(LINE)
+def validate(text):
+    """Return an error string when the line breaks the gate, else None."""
+    if not text or not text.strip():
+        return "review is empty"
+    if "\n" in text or "\r" in text:
+        return "review must fit on one line"
+    if len(text) > 180:
+        return f"review is {len(text)} characters, over the 180 limit"
+    words = text.split()
+    if len(words) > 25:
+        return f"review is {len(words)} words, over the 25 limit"
+    return None
+
+
+def run():
+    problem = validate(REVIEW)
+    if problem is not None:
+        print(f"gate: {problem}", file=sys.stderr)
+        return 1
+    folder = Path(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output"))
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "entry.txt").write_text(REVIEW, encoding="utf-8")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run())
