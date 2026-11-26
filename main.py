@@ -45,7 +45,15 @@ def run():
         return 1
     folder = Path(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output"))
     folder.mkdir(parents=True, exist_ok=True)
-    (folder / "entry.txt").write_text(REVIEW, encoding="utf-8")
+    target = folder / "entry.txt"
+    target.write_text(REVIEW, encoding="utf-8")
+    # Read back what landed on disk and refuse to report success unless
+    # it is byte-for-byte the validated line: a partial or altered write
+    # must fail loudly instead of passing a wrong entry to the gate.
+    if target.read_text(encoding="utf-8") != REVIEW:
+        print("gate: entry.txt on disk does not match the validated line",
+              file=sys.stderr)
+        return 1
     return 0
 
 
